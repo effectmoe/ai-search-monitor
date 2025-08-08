@@ -2,6 +2,8 @@
 
 AI検索プラットフォーム（ChatGPT、Perplexity、Gemini、Claude、Google AI Overview）でのブランド言及を自動追跡するモニタリングシステム。
 
+**Last Deploy**: 2025-08-08 - 認証システム環境変数対応、カスタムクレデンシャル実装
+
 ## 🚀 特徴
 
 - **5つのAIプラットフォーム対応**: ChatGPT、Perplexity、Gemini、Claude、Google AI Overview
