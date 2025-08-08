@@ -1,5 +1,4 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -34,11 +33,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    // パスワードの確認
-    const passwordHash = await bcrypt.hash(defaultPassword, 10);
-    const isValidPassword = await bcrypt.compare(password, passwordHash);
-
-    if (!isValidPassword) {
+    // パスワードの確認（環境変数のパスワードと直接比較）
+    if (password !== defaultPassword) {
       return res.status(401).json({
         success: false,
         error: {
