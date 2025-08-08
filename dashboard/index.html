@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Search Monitor Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .auth-section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .login-form {
+            display: flex;
+            gap: 15px;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .form-group input {
+            padding: 10px 15px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background: #5a67d8;
+        }
+
+        .btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin-top: 15px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+        }
+
+        .card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 15px;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .metric-item {
+            text-align: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #6b7280;
+        }
+
+        .platform-comparison {
+            overflow-x: auto;
+        }
+
+        .platform-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .platform-table th,
+        .platform-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .platform-table th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .platform-table td {
+            font-size: 14px;
+        }
+
+        .score-bar {
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .score-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ef4444 0%, #f59e0b 50%, #10b981 100%);
+            transition: width 0.3s ease;
+        }
+
+        .refresh-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+
+        .refresh-btn:hover {
+            background: #059669;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .login-form {
+                flex-direction: column;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI Search Monitor</h1>
+            <p>リアルタイム検索結果監視・評価システム | Phase 1 ダッシュボード</p>
+        </div>
+
+        <!-- 認証セクション -->
+        <div class="auth-section">
+            <div id="loginForm">
+                <h3>ダッシュボードにアクセス</h3>
+                <div class="login-form">
+                    <div class="form-group">
+                        <label for="email">メールアドレス</label>
+                        <input type="email" id="email" value="admin@example.com" />
+                    </div>
+                    <div class="form-group">
+                        <label for="password">パスワード</label>
+                        <input type="password" id="password" value="password123" />
+                    </div>
+                    <button class="btn" onclick="login()">ログイン</button>
+                </div>
+                <div id="loginStatus"></div>
+            </div>
+
+            <div id="userInfo" class="hidden">
+                <h3>ログイン中</h3>
+                <p>ユーザー: <span id="userEmail"></span> (<span id="userRole"></span>)</p>
+                <button class="btn" onclick="logout()" style="background: #ef4444; margin-top: 10px;">ログアウト</button>
+            </div>
+        </div>
+
+        <!-- ダッシュボード -->
+        <div id="dashboard" class="hidden">
+            <!-- システム健康状態 -->
+            <div class="card">
+                <h3>
+                    <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    システム状態
+                    <button class="refresh-btn" onclick="refreshSystemHealth()">更新</button>
+                </h3>
+                <div id="systemHealth" class="loading">読み込み中...</div>
+            </div>
+
+            <!-- 本日のメトリクス -->
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>
+                        <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                        </svg>
+                        本日の実行状況
+                        <button class="refresh-btn" onclick="refreshDailyReport()">更新</button>
+                    </h3>
+                    <div id="dailyReport" class="loading">読み込み中...</div>
+                </div>
+
+                <div class="card">
+                    <h3>
+                        <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        プラットフォーム比較
+                        <button class="refresh-btn" onclick="refreshPlatformComparison()">更新</button>
+                    </h3>
+                    <div id="platformComparison" class="loading">読み込み中...</div>
+                </div>
+            </div>
+
+            <!-- テスト実行セクション -->
+            <div class="card">
+                <h3>
+                    <svg class="card-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    テスト実行
+                </h3>
+                <button class="btn" onclick="runTestQuery()">サンプルクエリ実行</button>
+                <div id="testResults" style="margin-top: 15px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 設定
+        const API_BASE_URL = 'https://ai-search-monitor.vercel.app/api'; // 本番環境のURL
+        // const API_BASE_URL = 'http://localhost:3002'; // 開発環境用
+        let authToken = null;
+
+        // 認証関連
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const statusElement = document.getElementById('loginStatus');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password }),
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    authToken = data.data.token;
+                    const user = data.data.user;
+
+                    document.getElementById('userEmail').textContent = user.email;
+                    document.getElementById('userRole').textContent = user.role;
+
+                    document.getElementById('loginForm').classList.add('hidden');
+                    document.getElementById('userInfo').classList.remove('hidden');
+                    document.getElementById('dashboard').classList.remove('hidden');
+
+                    statusElement.innerHTML = '<div class="status success">ログイン成功</div>';
+
+                    // ダッシュボードデータを読み込み
+                    await loadDashboardData();
+                } else {
+                    statusElement.innerHTML = `<div class="status error">エラー: ${data.error.message}</div>`;
+                }
+            } catch (error) {
+                statusElement.innerHTML = `<div class="status error">接続エラー: ${error.message}</div>`;
+            }
+        }
+
+        function logout() {
+            authToken = null;
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('userInfo').classList.add('hidden');
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('loginStatus').innerHTML = '';
+        }
+
+        // APIリクエストヘルパー
+        async function apiRequest(endpoint, options = {}) {
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                ...options,
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                    ...options.headers,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            return response.json();
+        }
+
+        // システム健康状態
+        async function refreshSystemHealth() {
+            const element = document.getElementById('systemHealth');
+            element.innerHTML = '<div class="loading">更新中...</div>';
+
+            try {
+                const data = await apiRequest('/metrics/system/health');
+                const health = data.data.health;
+
+                element.innerHTML = `
+                    <div class="metrics-grid">
+                        <div class="metric-item">
+                            <div class="metric-value">${health.activeQueries}</div>
+                            <div class="metric-label">実行中クエリ</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-value">${Math.round(health.averageResponseTime24h)}ms</div>
+                            <div class="metric-label">平均応答時間(24h)</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-value">${(health.errorRate24h * 100).toFixed(1)}%</div>
+                            <div class="metric-label">エラー率(24h)</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-value">${health.systemLoad}</div>
+                            <div class="metric-label">システム負荷</div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                element.innerHTML = `<div class="status error">エラー: ${error.message}</div>`;
+            }
+        }
+
+        // 日次レポート
+        async function refreshDailyReport() {
+            const element = document.getElementById('dailyReport');
+            element.innerHTML = '<div class="loading">更新中...</div>';
+
+            try {
+                const data = await apiRequest('/metrics/reports/daily');
+                const report = data.data.report;
+
+                element.innerHTML = `
+                    <div class="metrics-grid">
+                        <div class="metric-item">
+                            <div class="metric-value">${report.totalQueries}</div>
+                            <div class="metric-label">総クエリ数</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-value">${(report.successRate * 100).toFixed(1)}%</div>
+                            <div class="metric-label">成功率</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-value">${report.averageRelevanceScore.toFixed(2)}</div>
+                            <div class="metric-label">関連性スコア</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-value">${report.averageAccuracyScore.toFixed(2)}</div>
+                            <div class="metric-label">精度スコア</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-value">¥${report.totalCost.toFixed(2)}</div>
+                            <div class="metric-label">総コスト</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-value">${Math.round(report.averageResponseTime)}ms</div>
+                            <div class="metric-label">平均応答時間</div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                element.innerHTML = `<div class="status error">エラー: ${error.message}</div>`;
+            }
+        }
+
+        // プラットフォーム比較
+        async function refreshPlatformComparison() {
+            const element = document.getElementById('platformComparison');
+            element.innerHTML = '<div class="loading">更新中...</div>';
+
+            try {
+                const data = await apiRequest('/metrics/platforms/comparison');
+                const comparison = data.data.comparison;
+
+                let tableHTML = `
+                    <div class="platform-comparison">
+                        <table class="platform-table">
+                            <thead>
+                                <tr>
+                                    <th>プラットフォーム</th>
+                                    <th>クエリ数</th>
+                                    <th>成功率</th>
+                                    <th>関連性</th>
+                                    <th>精度</th>
+                                    <th>応答時間</th>
+                                    <th>平均コスト</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                for (const [platform, stats] of Object.entries(comparison)) {
+                    tableHTML += `
+                        <tr>
+                            <td><strong>${platform.toUpperCase()}</strong></td>
+                            <td>${stats.totalQueries}</td>
+                            <td>
+                                ${(stats.successRate * 100).toFixed(1)}%
+                                <div class="score-bar">
+                                    <div class="score-fill" style="width: ${stats.successRate * 100}%"></div>
+                                </div>
+                            </td>
+                            <td>
+                                ${stats.avgRelevanceScore.toFixed(2)}
+                                <div class="score-bar">
+                                    <div class="score-fill" style="width: ${stats.avgRelevanceScore * 100}%"></div>
+                                </div>
+                            </td>
+                            <td>
+                                ${stats.avgAccuracyScore.toFixed(2)}
+                                <div class="score-bar">
+                                    <div class="score-fill" style="width: ${stats.avgAccuracyScore * 100}%"></div>
+                                </div>
+                            </td>
+                            <td>${Math.round(stats.avgResponseTime)}ms</td>
+                            <td>¥${stats.avgCost.toFixed(3)}</td>
+                        </tr>
+                    `;
+                }
+
+                tableHTML += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+
+                element.innerHTML = tableHTML;
+            } catch (error) {
+                element.innerHTML = `<div class="status error">エラー: ${error.message}</div>`;
+            }
+        }
+
+        // テストクエリ実行
+        async function runTestQuery() {
+            const button = document.querySelector('[onclick="runTestQuery()"]');
+            const resultsElement = document.getElementById('testResults');
+            
+            button.disabled = true;
+            button.textContent = '実行中...';
+            resultsElement.innerHTML = '<div class="loading">テストクエリを実行中...</div>';
+
+            try {
+                // クエリ開始
+                const queryId = `test-${Date.now()}`;
+                const startData = {
+                    queryId,
+                    platform: 'chatgpt',
+                    clientId: 1,
+                    searchQuery: 'tonychustudio AI開発サービス 監視システム',
+                    brandKeywords: ['tonychustudio', 'AI開発', '監視システム'],
+                    expectedMentions: ['WEB開発', 'システム構築', 'AI技術']
+                };
+
+                await apiRequest('/metrics/query/start', {
+                    method: 'POST',
+                    body: JSON.stringify(startData)
+                });
+
+                // 処理時間をシミュレート
+                setTimeout(async () => {
+                    try {
+                        // クエリ完了
+                        const completeData = {
+                            queryId,
+                            success: true,
+                            response: 'tonychustudioは、最先端のAI開発サービスと高度な監視システムを提供する専門企業です。WEB開発からシステム構築まで、包括的なAI技術ソリューションを提供しています。',
+                            tokensUsed: 85,
+                            apiLatency: 1200
+                        };
+
+                        const completeResult = await apiRequest('/metrics/query/complete', {
+                            method: 'POST',
+                            body: JSON.stringify(completeData)
+                        });
+
+                        const metrics = completeResult.data.metrics;
+
+                        resultsElement.innerHTML = `
+                            <div class="status success">
+                                <strong>テストクエリ完了</strong><br>
+                                クエリID: ${queryId}<br>
+                                関連性スコア: ${metrics.relevanceScore.toFixed(2)}<br>
+                                精度スコア: ${metrics.accuracyScore.toFixed(2)}<br>
+                                応答時間: ${metrics.responseTime}ms<br>
+                                コスト: ¥${(metrics.costEstimate || 0).toFixed(3)}
+                            </div>
+                        `;
+
+                        // データを更新
+                        await loadDashboardData();
+                    } catch (error) {
+                        resultsElement.innerHTML = `<div class="status error">完了処理エラー: ${error.message}</div>`;
+                    }
+
+                    button.disabled = false;
+                    button.textContent = 'サンプルクエリ実行';
+                }, 2000);
+
+            } catch (error) {
+                resultsElement.innerHTML = `<div class="status error">開始処理エラー: ${error.message}</div>`;
+                button.disabled = false;
+                button.textContent = 'サンプルクエリ実行';
+            }
+        }
+
+        // 全ダッシュボードデータ読み込み
+        async function loadDashboardData() {
+            await Promise.all([
+                refreshSystemHealth(),
+                refreshDailyReport(),
+                refreshPlatformComparison()
+            ]);
+        }
+
+        // ページ読み込み時の処理
+        document.addEventListener('DOMContentLoaded', function() {
+            // エンターキーでログイン
+            document.getElementById('password').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    login();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

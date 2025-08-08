@@ -1,0 +1,54 @@
+{
+  "name": "ai-search-monitor",
+  "version": "1.0.0",
+  "description": "AI Search Monitoring System with Mastra, Midscene.js, and TaskMagic",
+  "main": "api/index.ts",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "tsc",
+    "start": "node dist/api/index.js",
+    "test": "jest",
+    "test:unit": "jest tests/unit",
+    "test:integration": "jest tests/integration",
+    "test:e2e": "jest tests/e2e",
+    "test:api": "API_PORT=3002 npx ts-node test-api-with-metrics.ts",
+    "lint": "eslint . --ext .ts,.tsx",
+    "format": "prettier --write \"src/**/*.{ts,tsx,json,md}\"",
+    "migrate": "ts-node scripts/migrate.ts",
+    "clean": "rm -rf dist",
+    "vercel:deploy": "vercel --prod"
+  },
+  "keywords": [
+    "ai",
+    "monitoring",
+    "scraping",
+    "mastra",
+    "midscene",
+    "taskmagic"
+  ],
+  "author": "tonychustudio",
+  "license": "MIT",
+  "dependencies": {
+    "@vercel/node": "^3.0.12",
+    "@vercel/kv": "^1.0.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.23",
+    "@types/jest": "^29.5.11",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^20.10.5",
+    "jest": "^29.7.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2",
+    "vercel": "^37.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
