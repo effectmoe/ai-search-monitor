@@ -32,7 +32,7 @@ class AuthController {
    */
   private async initializeDefaultUsers(): Promise<void> {
     const defaultPassword = process.env.DEFAULT_PASSWORD || 'password123';
-    const defaultEmail = process.env.DEFAULT_EMAIL || 'admin@example.com';
+    const defaultEmail = (process.env.DEFAULT_EMAIL || 'admin@example.com').toLowerCase();
     const passwordHash = await bcrypt.hash(defaultPassword, 10);
 
     // Admin user - あなた専用のアカウント
