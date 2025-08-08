@@ -32,12 +32,13 @@ class AuthController {
    */
   private async initializeDefaultUsers(): Promise<void> {
     const defaultPassword = process.env.DEFAULT_PASSWORD || 'password123';
+    const defaultEmail = process.env.DEFAULT_EMAIL || 'admin@example.com';
     const passwordHash = await bcrypt.hash(defaultPassword, 10);
 
-    // Admin user
-    this.users.set('admin@example.com', {
+    // Admin user - あなた専用のアカウント
+    this.users.set(defaultEmail, {
       id: 'admin-001',
-      email: 'admin@example.com',
+      email: defaultEmail,
       passwordHash,
       role: 'admin',
       permissions: ['*'], // All permissions
@@ -45,32 +46,11 @@ class AuthController {
       createdAt: new Date(),
     });
 
-    // Regular user
-    this.users.set('user@example.com', {
-      id: 'user-001',
-      email: 'user@example.com',
-      passwordHash,
-      role: 'user',
-      permissions: ['clients:read', 'clients:update', 'monitoring:read', 'monitoring:execute', 'analytics:read'],
-      clientIds: [1, 2], // Can access clients 1 and 2
-      isActive: true,
-      createdAt: new Date(),
-    });
+    // 追加のユーザーが必要な場合は環境変数で設定可能
+    // 例: ADDITIONAL_USER_EMAIL, ADDITIONAL_USER_PASSWORD など
 
-    // Readonly user
-    this.users.set('readonly@example.com', {
-      id: 'readonly-001',
-      email: 'readonly@example.com',
-      passwordHash,
-      role: 'readonly',
-      permissions: ['clients:read', 'monitoring:read', 'analytics:read'],
-      clientIds: [1], // Can only access client 1
-      isActive: true,
-      createdAt: new Date(),
-    });
-
-    logger.info('Default users initialized', {
-      users: Array.from(this.users.keys()),
+    logger.info('User initialized', {
+      email: defaultEmail,
       defaultPassword: process.env.NODE_ENV === 'production' ? '[HIDDEN]' : defaultPassword,
     });
   }
